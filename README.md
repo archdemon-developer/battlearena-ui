@@ -22,6 +22,7 @@ Technologies used in this project are:
 - Firebase Authentication
 - Wouter
 - Vitest
+- React Hook Form
   (Technologies used will be updated here as and when added).
 
 ## Installation
