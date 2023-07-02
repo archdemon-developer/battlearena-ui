@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
 import {
   FacebookAuthProvider,
@@ -12,26 +12,23 @@ import {
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FIREBASE_AUTH } from "../../config/firebase-config";
 
-interface ISignUpFormProps {
-  isUser: boolean;
-}
-
 interface FormData {
-  username?: string;
-  teamname?: string;
+  name?: string;
   password: string;
   email: string;
   confirmPassword?: string;
+  type: string;
 }
 
 interface IUserData {
   uid: string;
   email: string;
-  username: string;
-  teamname: string;
+  name: string;
+  type: string;
 }
 
-const SignUpForm: React.FC<ISignUpFormProps> = ({ isUser }) => {
+const SignUpForm: React.FunctionComponent = () => {
+  const [userType, setUserType] = useState<string>("user");
   const {
     register,
     handleSubmit,
@@ -72,7 +69,7 @@ const SignUpForm: React.FC<ISignUpFormProps> = ({ isUser }) => {
 
   useEffect(() => {
     reset();
-  }, [isUser, reset]);
+  }, [reset]);
 
   const onSubmit: SubmitHandler<FormData> = async (data: FormData) => {
     try {
@@ -87,61 +84,53 @@ const SignUpForm: React.FC<ISignUpFormProps> = ({ isUser }) => {
 
       const userDetails: IUserData = {
         uid: user.uid,
-        username: data.username || "",
-        teamname: data.teamname || "",
+        name: data.name || "",
         email: data.email,
+        type: userType,
       };
+
       console.log(userDetails);
     } catch (error) {
       console.error("Signup Error:", error);
     }
   };
 
+  const handleUserTypeChange: React.ChangeEventHandler<HTMLSelectElement> = (
+    e
+  ): void => {
+    setUserType(e.target.value);
+  };
   return (
     <form className="px-8 py-12 bg-white" onSubmit={handleSubmit(onSubmit)}>
-      {isUser ? (
-        <div>
-          <div className="mb-6">
-            <label
-              className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="username"
-            >
-              Username <span className="text-red-500">*</span>
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-              id="username"
-              type="text"
-              placeholder="Enter your username"
-              {...register("username", { required: "Username is required" })}
-            />
-            {errors.username && (
-              <span className="text-red-500">{errors.username.message}</span>
-            )}
-          </div>
+      <div>
+        <div className="mb-6">
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="name"
+          >
+            Username <span className="text-red-500">*</span>
+          </label>
+          <input
+            className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+            id="name"
+            type="text"
+            placeholder={
+              userType === "user"
+                ? "Enter your username"
+                : "Enter your team name"
+            }
+            {...register("name", {
+              required:
+                userType === "user"
+                  ? "Username is required"
+                  : "Team name is required",
+            })}
+          />
+          {errors.name && (
+            <span className="text-red-500">{errors.name.message}</span>
+          )}
         </div>
-      ) : (
-        <div>
-          <div className="mb-6">
-            <label
-              className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="teamName"
-            >
-              Team Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-              id="teamName"
-              type="text"
-              placeholder="Enter your team name"
-              {...register("teamname", { required: "Team name is required" })}
-            />
-            {errors.teamname && (
-              <span className="text-red-500">{errors.teamname.message}</span>
-            )}
-          </div>
-        </div>
-      )}
+      </div>
       <div className="mb-6">
         <label
           className="block text-gray-700 text-sm font-bold mb-2"
@@ -214,6 +203,40 @@ const SignUpForm: React.FC<ISignUpFormProps> = ({ isUser }) => {
           <span className="text-red-500">{errors.confirmPassword.message}</span>
         )}
       </div>
+      <div className="mb-6">
+        <label
+          className="block text-gray-700 text-sm font-bold mb-2"
+          htmlFor="user-type"
+        >
+          User Type <span className="text-red-500">*</span>
+        </label>
+        <div className="relative inline-block w-full">
+          <select
+            className="appearance-none bg-white border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+            id="user-type"
+            onChange={handleUserTypeChange}
+          >
+            <option value="user">User</option>
+            <option value="team">Team</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-700 top-1/2 transform -translate-y-1/2">
+            <div className="flex flex-col items-center">
+              <svg
+                className="fill-current h-4 w-4 transform rotate-270"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M7 10l5 5 5-5H7z"
+                  clipRule="evenodd"
+                  fillRule="evenodd"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <button
         className="bg-primary hover:bg-primary_dark text-white font-bold py-3 px-4 rounded-full w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mb-6 transition-all duration-300"
         type="submit"
@@ -225,23 +248,25 @@ const SignUpForm: React.FC<ISignUpFormProps> = ({ isUser }) => {
           Forgot Password?
         </a>
       </div>
-      <div className="mt-6">
-        <div className="flex items-center justify-center">
-          <span className="text-gray-600 mr-2">Or sign up with:</span>
-          <button
-            className="text-blue-500 hover:text-blue-800 transform hover:scale-110 transition-transform"
-            onClick={handleFacebookSignUp}
-          >
-            <FaFacebook className="text-xl mr-2" />
-          </button>
-          <button
-            onClick={handleGoogleSignUp}
-            className="text-primary hover:text-primary_dark transform hover:scale-110 transition-transform"
-          >
-            <FaGoogle className="text-xl" />
-          </button>
+      {userType === "user" ? (
+        <div className="mt-6">
+          <div className="flex items-center justify-center">
+            <span className="text-gray-600 mr-2">Or sign up with:</span>
+            <button
+              className="text-blue-500 hover:text-blue-800 transform hover:scale-110 transition-transform"
+              onClick={handleFacebookSignUp}
+            >
+              <FaFacebook className="text-xl mr-2" />
+            </button>
+            <button
+              onClick={handleGoogleSignUp}
+              className="text-primary hover:text-primary_dark transform hover:scale-110 transition-transform"
+            >
+              <FaGoogle className="text-xl" />
+            </button>
+          </div>
         </div>
-      </div>
+      ) : null}
     </form>
   );
 };
